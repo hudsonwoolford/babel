@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # np.save("output/book_vectors.npy", vecs)
 
-    vecs = np.load("output/book_vectors.npy")
+    vecs = np.load("output/Description_Embeddings.npy")
 
     index = int(input("Index: "))
 
@@ -56,21 +56,20 @@ if __name__ == "__main__":
         cos_sim = np.dot(vecs[index], vecs[i]) / (np.linalg.norm(vecs[index]) * np.linalg.norm(vecs[i]))
         sim[i]= cos_sim
 
-    ranked = np.argsort(sim)
+    ranked = np.argsort(sim)[::-1]
 
     with open("output/google_books_cleaned.json", "r", encoding="utf-8") as f:
         book_data = json.load(f)
 
+    books = list(book_data.values())
     for i in range(10):
-        book = book_data[str(ranked[i] + 1)]
+        book = books[ranked[i]]
 
         print(book["volumeInfo"]["title"])
         print(book["volumeInfo"]["authors"])
         print(book["volumeInfo"]["categories"])
         print(book["volumeInfo"]["description"][:50])
         print("\n")
-    
-    
 
 
             

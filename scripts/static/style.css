@@ -1,0 +1,46 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background: #f5f5f5;
+}
+
+.phone {
+    background-color: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 360px;
+    height: 800px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cover_image {
+    border-radius: 16px;
+    height: 400px;
+}
+
+.buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    position: absolute;         /* take it out of normal flow */
+    bottom: 8rem;               /* pin to bottom of card */
+    left: 0;
+    right: 0;                   /* stretch full width so it can center */
+}
+
+button {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.btn-left  { background: #cf9da3; color: black; }
+.btn-right  { background: #aed6ad; color: black; }
