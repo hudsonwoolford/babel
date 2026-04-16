@@ -11,10 +11,12 @@ HEADERS = headers = {
 }
 BOOK_INFO = """id
             title
+            subtitle
             release_date
             description
             rating
             ratings_count
+            slug
             cached_tags
             contributions {
                 author {

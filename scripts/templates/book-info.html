@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="logo-txt">{{book.title}}</div>
+<img src="{{ book.image.url }}" alt="Book cover" class="cover_image">
+<p>{{ book.rating | stars }} ({{ book.ratings_count }})</p>
+<!-- <h3>{{ book.title }}</h2> -->
+<h4>{{ book.authors[0] }}</h4>
+<p>{{ ', '.join(book.genres.names[:3]) }}</p>
+<p>{{ book.description | default("Unknown.", True) | truncate(500) }}</p>
+<a href= "{{ 'https://hardcover.app/books/' + book.slug }}" target="_blank">See it on Hardcover</a>
+
+{% endblock %}

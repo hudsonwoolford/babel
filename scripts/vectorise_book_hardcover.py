@@ -3,7 +3,7 @@ import json
 import embedding_model
 import vector_utils
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, normalize
 
 def map_vocab(vocabulary: list) -> dict:
     """Maps a vocabulary to indices, runs in order
@@ -138,6 +138,7 @@ def main():
 
     #concatenate all vectors
     final_vecs = vector_utils.list_norm_concatenate(genre_vecs, mood_vecs, desc_vecs)
+    final_vecs = normalize(final_vecs, norm='l2')
 
     #save final
     np.save("output/book_vectors.npy", final_vecs)

@@ -1,6 +1,8 @@
 import numpy as np
 import vector_utils
-
+from sklearn.preprocessing import StandardScaler    
+from sklearn.preprocessing import normalize    
+import json
 
 
 class Rocchio:
@@ -46,52 +48,74 @@ class Weighted_Rocchio(Rocchio):
     def update(self, index: int, liked: bool):
         pass
 
-class LinUCB:
-    def __init__(self, book_vectors: np.ndarray, id_2_index: dict, alpha: float = 1.0):
+class LinUCB():
+    def __init__(self, book_vectors: np.ndarray, alpha: float = 1, seen_indices: list = []):
+        _, n_features = book_vectors.shape
+
+        self.seen_indices = seen_indices
+
+        self.A_inv = np.eye(n_features)
+        self.b = np.zeros(n_features)
 
         self.book_vectors = book_vectors
-        self.id_2_index = id_2_index
-        self.index_2_id = {value: key for key, value in id_2_index.items()}
-        self.A_inv = np.array([np.eye(book_vectors.shape[1]) for _ in range(len(book_vectors))])
-        self.b = np.zeros(book_vectors.shape)
+
         self.alpha = alpha
     
-    def score(self, book_id):
-        index = self.id_2_index[book_id]
-        x = self.book_vectors[index]
 
-        A_inv = self.A_inv[index]
+    def score(self, book_index: int) -> float:
+        book_x = self.book_vectors[book_index]
 
-        #ridge regress
-        theta = A_inv @ self.b[index]
+        theta = self.A_inv @ self.b
 
-        #exploit / explore
-        exploit = theta @ x
-        explore = self.alpha * np.sqrt(x @ A_inv @ x)
-        return exploit + explore
+        expected = np.dot(theta, book_x)
+        uncertainty = np.sqrt(np.transpose(book_x) @ self.A_inv @ book_x)
+        result = expected + uncertainty
+
+        # print(f"{book_index} | Expected: {expected:.2f} | Uncertainty: {uncertainty:.2f} | Total: {result:.2f}")
+
+        return result
         
-    def recommend(self, seen_ids: set):
-
+    def recommend(self, seen_indices: set):
         scores = []
-        candidate_indices = []
+        candidates = []
         for i in range(len(self.book_vectors)):
-            book_id = self.index_2_id[i]
-            if book_id in seen_ids:
+            if i in seen_indices:
                 continue
-            candidate_indices.append(i)
-            scores.append(self.score(book_id))
+            
+            candidates.append(i)
+            scores.append(self.score(i))
+
+        best = np.argmax(scores)
+        return candidates[best]
+    
+    def update(self, book_index: int, liked: bool) -> None:
+        book_x = self.book_vectors[book_index]
+
+        #update matrices
+        self.A_inv -= (self.A_inv @ np.outer(book_x, book_x) @ self.A_inv) / (1 + book_x @ self.A_inv @ book_x)
+        self.b += int(liked) * book_x
         
-        max_index = np.argmax(np.array(scores))
-        return self.index_2_id[candidate_indices[max_index]]
 
-    def update(self, book_id, liked: bool):
-        book_index = self.id_2_index[book_id]
-        x = self.book_vectors[book_index]
-        r = int(liked)
+if __name__ == "__main__":
+    # thriller, romance, sci-fi
+    test_vectors = np.load("output/book_vectors.npy")[:500]
+    with open("output/book_data.json", 'r', encoding="utf-8") as f:
+        book_list= json.load(f)["data"]["books"][:500]
+    
 
-        A_inv = self.A_inv[book_index]
-        Ax = A_inv @ x
-        A_inv -= np.outer(Ax, Ax) / (1 + x @ Ax)
-        self.b[book_index] += r * x
+    # scaler = StandardScaler()
+    # test_vectors = scaler.fit_transform(test_vectors)
+    test_vectors = normalize(test_vectors, norm='l2')
+    
+    recommender = LinUCB(test_vectors)
+
+    while True:
+        rec = recommender.recommend()
+        print(book_list[rec]["title"])
+        print(book_list[rec]["genres"]["names"])
+        liked = input("y/n: ") == "y"
+        recommender.update(rec, liked)
+    
+
 
 

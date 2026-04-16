@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% from 'macros.html' import icon, menu_btn %}
+
+{% block content %}
+<div class="logo-txt">Session summary</div>
+
+
+<p>Your liked books</p>
+<div class="scroll-area">
+    {% for book in liked_books %}
+    
+    <div class="h-book-card">
+        <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+            <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+            <span class="book-card-info">
+                <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+                <span>{{ book.authors[0] | truncate(20)}}</span>
+            </span>
+        </a>
+
+        <form action="/favorite" method="post" class="no-margin-padding">
+            <button type="submit" class="button button-favorite" name="book_id" value="{{ book.id }}">
+                {% if book.id in fav_ids %}
+                    {{ icon('Heart', size=25, color="red") }}
+                {% else %}
+                    {{ icon('Heart', size=25) }}
+                {% endif %}
+            </button>
+        </form>
+    </div>
+
+    {% endfor %}
+</div>
+
+<!-- <p>Based on your likes</p>
+<div class="horiz-scroll-area">
+    {% for book in rec_books %}
+    
+    <a href="{{url_for('book_info', id=book.id) }}" class="v-book-card">
+        <img src="{{ book.image.url }}" style="border-radius: 5px;" height="200px" alt="Book cover">
+        <span class="book-card-info">
+            <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+            <span>{{ book.authors[0] | truncate(20)}}</span>
+        </span>
+    </a>
+    {% endfor %}
+</div> -->
+{% endblock %}
+
+{% block footer %}
+{{ menu_btn("match", "Swipe", "Continue swiping", "Start another session") }}
+{{ menu_btn("index", "Home", "Exit", "Return to menu") }}
+{% endblock %}

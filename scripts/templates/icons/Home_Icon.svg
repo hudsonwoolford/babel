@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Elements" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-hom-1 {
+        fill: currentColor;
+      }
+
+      .cls-hom-1, .cls-hom-2 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: 10px;
+      }
+
+      .cls-hom-2 {
+        fill: none;
+      }
+    </style>
+  </defs>
+  <g id="Home">
+    <g>
+      <path class="cls-hom-1" d="M470.17,222.88l-200.85-158.82c-7.49-5.92-19.17-5.92-26.66,0L41.83,222.88c-12.8,10.12-4.26,28.16,13.33,28.16h45.88v185.04c0,9,8.7,16.3,19.43,16.3h270.64c10.73,0,19.43-7.3,19.43-16.3v-185.04h46.31c17.59,0,26.13-18.04,13.33-28.16Z"/>
+      <path class="cls-hom-2" d="M291.08,452.38v-76.09c0-11.25-10.87-20.36-24.27-20.36h-14.53c-13.41,0-24.27,9.12-24.27,20.36v76.09"/>
+      <line class="cls-hom-1" x1="410.54" y1="251.04" x2="101.03" y2="251.04"/>
+    </g>
+  </g>
+</svg>

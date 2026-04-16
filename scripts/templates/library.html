@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{% from 'macros.html' import icon %}
+<div class="logo-txt">Library</div>
+
+<p>Favorites</p>
+<!-- <label for="read" class="lib-toggle">
+    <input type="radio" name="book_list" id="read" value="Read" class="lib-toggle" style="display: none; opacity: 0;">
+    Read
+</label> -->
+<!-- <label for="favorites">Favorites</label>
+<input type="radio" name="book_list" id="favorites" value="Favorites"> -->
+<div class="scroll-area">
+    {% for book in favorites %}
+    <div class="h-book-card">
+        <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+            <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+            <span class="book-card-info">
+                <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+                <span>{{ book.authors[0] | truncate(20)}}</span>
+            </span>
+        </a>
+
+        <form action="/favorite" method="post" class="no-margin-padding">
+            <input type="hidden" name="endpoint" value="{{ request.endpoint }}">
+            <button type="submit" class="button button-favorite" name="book_id" value="{{ book.id }}">
+                    {{ icon('Heart', size=25, color="red") }}
+            </button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+<!-- <p>Explore</p>
+<div class="horiz-scroll-area">
+    {% for book in favorites %}
+    
+    <a href="{{url_for('book_info', id=book.id) }}" class="v-book-card">
+        <img src="{{ book.image.url }}" style="border-radius: 5px;" height="200px" alt="Book cover">
+        <span class="book-card-info">
+            <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+            <span>{{ book.authors[0] | truncate(20)}}</span>
+        </span>
+    </a>
+    {% endfor %}
+</div> -->
+{% endblock %}

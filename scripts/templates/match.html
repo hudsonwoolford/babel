@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<span class="swipe-header">
+    <div class="logo-txt">Bindr</div>
+    <div class="emphasis txt-x-large">({{ n_swipes + 1 }} / {{ max_swipes }})</div>
+</span>
+
+<form action="/swipe" method="post">
+    <div class="swipe-area">
+        <button class="button button-swipe button-swipe-left" name="direction" value="left">〈</button>
+        <input type="hidden" name="book_id" value="{{ book.id }}">
+        <img src="{{ book.image.url }}" alt="Book cover" class="cover-image">
+        <button class="button button-swipe button-swipe-right" name="direction" value="right">⟩</button>
+    </div>
+</form>
+
+<div class="book-info">
+    <div class="italics txt-large">{{ book.rating | stars }} ({{ book.ratings_count }})</div>
+    <div class="emphasis txt-x-large">{{ book.title }}</div>
+    <div class="emphasis">{{ book.authors[0] }}</div>
+    <div>{{ ', '.join(book.genres.names[:3]) }}</div>
+    <div class="italics txt-small">{{ book.description | default("Unknown.", True) | truncate(650) }}</div>
+</div>
+
+{% endblock %}

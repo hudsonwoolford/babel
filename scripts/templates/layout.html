@@ -1,0 +1,48 @@
+<!doctype hmtl>
+<html>
+<head>
+    <title>Bindr</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="phone">
+        {% block content%}
+
+        {% endblock %}
+
+        {% block footer %}
+        {% from 'macros.html' import icon%}
+        <footer class="footer-menu">
+            <a href="{{ url_for('index') }}" class="button button-footer"> 
+                {% if request.endpoint == 'index' %}
+                    {{ icon('Home', size=40, color='black') }}
+                {% else %}
+                    {{ icon('Home', size=40) }}
+                {% endif %} 
+            </a>
+            <a href="{{ url_for('match') }}" class="button button-footer">
+                {% if request.endpoint == 'swipe_session' %}
+                    {{ icon('Swipe', size=40, color='black') }}
+                {% else %}
+                    {{ icon('Swipe', size=40) }}
+                {% endif %} 
+            </a>
+            <a href="{{ url_for('library') }}" class="button button-footer"> 
+                {% if request.endpoint == 'library' %}
+                    {{ icon('Library', size=40, color='black') }}
+                {% else %}
+                    {{ icon('Library', size=40) }}
+                {% endif %} 
+            </a>
+            <a href="{{ url_for('settings') }}" class="button button-footer"> 
+                {% if request.endpoint == 'settings' %}
+                    {{ icon('Settings', size=40, color='black') }}
+                {% else %}
+                    {{ icon('Settings', size=40) }}
+                {% endif %} 
+            </a>
+        </footer>
+        {% endblock %}
+    </div>
+</body>
+</html>

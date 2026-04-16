@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Elements" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .cls-hea-1 {
+        fill: currentColor;
+        stroke: #000;
+        stroke-miterlimit: 10;
+        stroke-width: 10px;
+      }
+    </style>
+  </defs>
+  <g id="Heart">
+    <path class="cls-hea-1" d="M469.65,186.79c0-66.29-53.74-120.03-120.03-120.03-37.86,0-71.62,17.54-93.62,44.92-22-27.39-55.76-44.92-93.62-44.92-66.29,0-120.03,53.74-120.03,120.03,0,33.14,13.43,63.15,35.15,84.87l178.49,173.58h0s0,0,0,0h0s178.49-173.58,178.49-173.58c21.72-21.72,35.15-51.73,35.15-84.87Z"/>
+  </g>
+</svg>
