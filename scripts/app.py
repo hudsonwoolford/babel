@@ -82,6 +82,13 @@ def swipe_session():
 def summary():
     liked_ids = session.get("liked_ids", [])
     liked_books = [BOOKS[ID_2_INDEX[book_id]] for book_id in liked_ids]
+
+    unique_genres = set()
+    for book in liked_books:
+        top_genres = book["genres"]["names"][:3]
+        for genre in top_genres:
+            unique_genres.add(genre)
+    n_genres = len(unique_genres)
     
     fav_ids = session.get("fav_ids", [])
     # fav_books = [BOOKS[ID_2_INDEX[book_id]] for book_id in fav_ids]
@@ -89,7 +96,11 @@ def summary():
     rec_books = random.sample(range(len(VECTORS)), 10)
     rec_books = [BOOKS[ind] for ind in rec_books]
 
-    return render_template('summary.html', liked_books=liked_books, rec_books=rec_books, fav_ids=fav_ids)
+    return render_template('summary.html', 
+                           liked_books=liked_books, 
+                           rec_books=rec_books, 
+                           fav_ids=fav_ids,
+                           n_genres=n_genres)
 
 @app.route("/favorite", methods=["POST"])
 def favorite():

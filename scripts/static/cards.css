@@ -1,3 +1,23 @@
+.spaced-between {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.summary-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 10.5rem;
+    height: 5rem;
+
+    flex-direction: column;
+
+    border-radius: var(--border-radius);
+    border: 1px solid black;
+}
+
 .h-book-card {
     display: flex;
     width: 100%;
@@ -5,7 +25,7 @@
     justify-content: space-between;
     align-items: center;
     text-align: left;
-    border-radius: 15px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--shadow-color);
     box-sizing: border-box;
     margin-bottom: 0.5rem;

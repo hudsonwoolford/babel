@@ -194,7 +194,7 @@ def main():
     # trending_ids = get_trending_ids("2025-01-01", "2025-04-01", limit=500, offset=0)
     with open("input/trending_ids.txt") as f:
         trending_ids = [int(l.rstrip()) for l in f]
-    trending_ids = trending_ids[:10000]
+    trending_ids = trending_ids[:30000]
     
     print("Retrieving books...")
     book_data = get_books_by_id(trending_ids)

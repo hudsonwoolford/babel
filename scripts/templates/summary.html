@@ -4,6 +4,16 @@
 {% block content %}
 <div class="logo-txt">Session summary</div>
 
+<div class="spaced-between">
+    <div class="summary-card">
+        <span class="emphasis txt-xx-large">{{ liked_books | length }}</span>
+        <span class="txt-small">Liked books</span>
+    </div>
+    <div class="summary-card">
+        <span class="emphasis txt-xx-large">{{ n_genres }}</span>
+        <span class="txt-small">Unique genres</span>
+    </div>
+</div>
 
 <p>Your liked books</p>
 <div class="scroll-area">
