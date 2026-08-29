@@ -1,26 +1,152 @@
-{% extends 'layout.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
+<!-- Bold header area -->
 <span class="swipe-header">
     <div class="logo-txt">Bindr</div>
-    <div class="emphasis txt-x-large">({{ n_swipes + 1 }} / {{ max_swipes }})</div>
+    <div class="emphasis txt-x-large" id="session-counter">(0/ {{ max_swipes }})</div>
 </span>
 
-<form action="/swipe" method="post">
-    <div class="swipe-area">
-        <button class="button button-swipe button-swipe-left" name="direction" value="left">〈</button>
-        <input type="hidden" name="book_id" value="{{ book.id }}">
-        <img src="{{ book.image.url }}" alt="Book cover" class="cover-image">
-        <button class="button button-swipe button-swipe-right" name="direction" value="right">⟩</button>
-    </div>
-</form>
+<!-- Swiping area -->
+<div class="swipe-area">
+    <button id="btn-left" class="button button-swipe left" name="direction" value="left">〈</button>
+    <div class="swipe-stack" id="swipe-stack">
 
-<div class="book-info">
-    <div class="italics txt-large">{{ book.rating | stars }} ({{ book.ratings_count }})</div>
-    <div class="emphasis txt-x-large">{{ book.title }}</div>
-    <div class="emphasis">{{ book.authors[0] }}</div>
-    <div>{{ ', '.join(book.genres.names[:3]) }}</div>
-    <div class="italics txt-small">{{ book.description | default("Unknown.", True) | truncate(650) }}</div>
+    </div>
+    <button id="btn-right" class="button button-swipe right" name="direction" value="right">⟩</button>
 </div>
 
+<!-- Book info area -->
+<div class="book-info">
+    <div id="book-rating" class="italics txt-large"></div>
+    <div id="book-title" class="emphasis txt-x-large"></div>
+    <div id="book-author"class="emphasis"></div>
+    <div id="book-genres"></div>
+    <div id="book-description" class="italics txt-small"></div>
+</div>
+
+<script>
+    const b_queue = {{book_queue | tojson}};
+    const swipe_stack = document.getElementById("swipe-stack");
+    const threshold = 100;
+
+    b_queue.forEach(b => add_card(b));
+    initialise_elements(b_queue[0]);
+
+    let x_start = 0;
+    let is_dragging = false;
+
+    document.getElementById("btn-left").addEventListener("click", ()=>trigger_swipe("left"));
+    document.getElementById("btn-right").addEventListener("click", ()=>trigger_swipe("right"));
+    
+    function trigger_swipe(direction) {
+        front_card = swipe_stack.lastElementChild;
+
+        const form_data = new FormData();
+        form_data.append('book_id', JSON.parse(front_card.dataset.book).id);
+        form_data.append('direction', direction);
+
+        front_card.style = '';
+        front_card.classList.add(`animate-${direction}`);
+
+        const new_front = swipe_stack.children[swipe_stack.children.length-2];
+        initialise_elements(JSON.parse(new_front.dataset.book));
+        
+        front_card.addEventListener("transitionend", () => {
+            front_card.remove();
+            fetch("/swipe", {method: "POST", body: form_data}).then(res => res.json()).then(data => {
+                if (data.done) {
+                    window.location.href = data.redirect;
+                }
+                else {
+                    console.log(data.book);
+                    add_card(data.book);
+                }
+            });
+        }, {once:true})
+        
+    }
+
+    function initialise_elements(book) {
+        // document.getElementById("session-counter").innerHTML
+        document.getElementById("book-title").textContent = book.title;
+        document.getElementById("book-author").textContent = book.authors[0];
+
+        let rating = Math.round(book.rating, 1)
+        let filled = Math.round(rating)
+        document.getElementById("book-rating").textContent = `${rating} ${'★'.repeat(filled)}${'☆'.repeat(5 - filled)}`;
+        document.getElementById("book-genres").textContent = book.genres.names.slice(0, 3).join(', ');
+        if (book.description) {
+            adj_desc = book.description
+            if (book.description.length > 650){
+                adj_desc = `${book.description.slice(0, 650)}...`;
+            }
+            document.getElementById("book-description").textContent = adj_desc;
+        }
+    }
+
+    function add_card(book) {
+        const card = document.createElement("div");
+        card.classList.add("swipe-card");
+        card.dataset.book = JSON.stringify(book);
+
+        card.innerHTML = `
+        <img id="book-image" src="${ book.image.url }" alt="Book cover" class="cover-image" draggable="false"> 
+        <div class="swipe-hint left cover-image">X</div>
+        <div class="swipe-hint right cover-image">♥</div>
+        `;
+
+        init_listeners(card);
+        if (swipe_stack.children.length == 0) {
+            swipe_stack.appendChild(card);
+        }
+        else {
+            swipe_stack.insertBefore(card, swipe_stack.firstElementChild);
+        }
+    }
+
+    function init_listeners(card) {
+            card.addEventListener("pointerdown", (e) => {
+            x_start = e.clientX;
+            is_dragging = true;
+            
+            card.style.transition = 'none';
+            e.preventDefault();
+            card.setPointerCapture(e.pointerId);
+        })
+
+        card.addEventListener("pointermove", (e) => {
+            if (!is_dragging) return;
+
+            let x_offset = e.clientX - x_start;
+            const x_rot = x_offset * 0.08;
+
+            progress = Math.min(Math.abs(x_offset), threshold)/threshold * 0.35;
+
+            card.querySelector(".swipe-hint.left").style.opacity = x_offset < 0 ? progress : 0;
+            card.querySelector(".swipe-hint.right").style.opacity = x_offset > 0 ? progress : 0;
+
+            card.style.transform = `translateX(${x_offset}px) rotate(${x_rot}deg)`;
+        })
+
+        card.addEventListener("pointerup", (e) => {
+            is_dragging = false;
+            let x_offset = e.clientX - x_start;
+
+            //trigger swipe if needed
+            if (x_offset < -threshold) {
+                trigger_swipe("left");
+            }
+            else if (x_offset > threshold) {
+                trigger_swipe("right");
+            }
+            else
+            {
+                card.style.transition = 'transform 0.3s ease';
+                card.style.transform = 'translateX(0) rotate(0deg)';
+                card.querySelectorAll(".swipe-hint").forEach(h => h.style.opacity = 0);
+            }
+        })
+    }
+</script>
 {% endblock %}

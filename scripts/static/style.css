@@ -1,6 +1,7 @@
 @import url('buttons.css');
 @import url('cards.css');
 @import url('text.css');
+@import url('swipe.css');
 
 :root {
     --main-bg-color: #ffffff;
@@ -56,12 +57,6 @@ body {
     margin-bottom: 1rem;
 }
 
-
-.cover-image {
-    border-radius: 16px;
-    height: 100%;
-}
-
 .swipe-area {
     justify-content: space-between;
     display: flex;
@@ -70,6 +65,10 @@ body {
     height: 350px;
 }
 
+.cover-image{
+    border-radius: 16px;
+    height: 100%;
+}
 
 .no-margin-padding {
     margin: 0;

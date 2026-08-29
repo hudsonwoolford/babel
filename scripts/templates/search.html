@@ -1,0 +1,35 @@
+{% extends 'favoritable.html' %}
+
+{% block content %}
+{% from 'macros.html' import icon %}
+
+<form method="post">
+    <input type="text" name="search_box" value="{{ request.form.get('search_box', '') }}" placeholder="Search for a book..." autocomplete="off">
+    <button type="submit">Search</button>
+</form>
+
+{% if top_books %}
+<div class="scroll-area">
+    {% for book in top_books %}
+    <div class="h-book-card">
+        <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+            <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+            <span class="book-card-info">
+                <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+                <span>{{ book.authors[0] | truncate(20)}}</span>
+            </span>
+        </a>
+
+        <button type="button" class="button button-favorite" onclick="toggle_favorite(this, '{{book.id}}')">
+            {% if book.id in fav_ids %}
+                {{ icon('Heart', size=25, color="red") }}
+            {% else %}
+                {{ icon('Heart', size=25) }}
+            {% endif %}
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

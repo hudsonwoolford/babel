@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'favoritable.html' %}
 {% from 'macros.html' import icon, menu_btn %}
 
 {% block content %}
@@ -28,15 +28,14 @@
             </span>
         </a>
 
-        <form action="/favorite" method="post" class="no-margin-padding">
-            <button type="submit" class="button button-favorite" name="book_id" value="{{ book.id }}">
-                {% if book.id in fav_ids %}
-                    {{ icon('Heart', size=25, color="red") }}
-                {% else %}
-                    {{ icon('Heart', size=25) }}
-                {% endif %}
-            </button>
-        </form>
+
+        <button type="button" class="button button-favorite" onclick="toggle_favorite(this, '{{book.id}}')">
+            {% if book.id in fav_ids %}
+                {{ icon('Heart', size=25, color="red") }}
+            {% else %}
+                {{ icon('Heart', size=25) }}
+            {% endif %}
+        </button>
     </div>
 
     {% endfor %}

@@ -2,8 +2,8 @@ import numpy as np
 import json
 import embedding_model
 import vector_utils
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, normalize
+from sklearn.preprocessing  import normalize
+import dimension_reduction
 
 def map_vocab(vocabulary: list) -> dict:
     """Maps a vocabulary to indices, runs in order
@@ -70,8 +70,8 @@ def weighted_vec(values: list, counts: list, vocabulary_map: dict) -> np.ndarray
     vec = np.zeros(len(vocabulary_map))
 
     #calculate weight per value (normalized by max value)
-    max_count = counts[0] if len(counts) > 0 else 1 #assuming still sorted
-    max_count = 1 if max_count == 0 else 1
+    max_count = counts[0] if len(counts) > 0 else 1 #assuming sorted
+    max_count = 1 if max_count == 0 else 1 #avoid div 0
 
     weights = [c / max_count for c in counts]
 
@@ -96,49 +96,50 @@ def generate_tag_vecs(book_list: list, value_extractor, count_extractor):
     
     return res_vectors
 
-def reduce_vec_dim(vec: np.ndarray, n_dim: int):
-    vec_scaled = StandardScaler().fit_transform(vec)
-    pca = PCA(n_dim)
-    return pca.fit_transform(vec_scaled)
-
 def main():
-
     #load book data
     with open("output/book_data.json") as f:
         book_data = json.load(f)
     book_list = book_data["data"]["books"]
 
 
-    # #genres
+    #genre vectors
     genre_vecs = generate_tag_vecs(book_list, 
                                    lambda b: b["genres"]["names"], 
                                    lambda b: b["genres"]["counts"])
-    genre_vecs = reduce_vec_dim(genre_vecs, 25)
+    genre_vecs = dimension_reduction.change_dimensions(genre_vecs, 25)
     
-    #moods
+    #mood vectors
     mood_vecs = generate_tag_vecs(book_list,
                                   lambda b: b["moods"]["names"],
                                   lambda b: b["moods"]["counts"])
-    mood_vecs = reduce_vec_dim(mood_vecs, 25)
-    # mood_vecs = np.array([reduce_vec_dim(vec, 25) for vec in mood_vecs])
+    mood_vecs = dimension_reduction.change_dimensions(mood_vecs, 25)
     
     #descriptions
+
+    #verify at least a blank description
     descriptions = []
+    ratings = []
     for book in book_list:
         desc = book.get("description", "")
+        rate = book.get("ratings_count", 0)
         if desc == None:
             desc = ""
 
+        ratings.append(rate)
         descriptions.append(desc)
 
+    #create description vectors
     embedding_model.init_model()
     desc_vecs = embedding_model.embed_texts(descriptions)
-    # desc_vecs = reduce_vec_dim(desc_vecs, 50)
-    # desc_vecs = np.array([reduce_vec_dim(vec, 50) for vec in desc_vecs])
+    desc_vecs = dimension_reduction.change_dimensions(desc_vecs, 100)
 
-    #concatenate all vectors
+    #concatenate into final vector
     final_vecs = vector_utils.list_norm_concatenate(genre_vecs, mood_vecs, desc_vecs)
     final_vecs = normalize(final_vecs, norm='l2')
+
+    #rating scaling
+    final_vecs *= np.sqrt(np.asarray(ratings))[:, None]
 
     #save final
     np.save("output/book_vectors.npy", final_vecs)

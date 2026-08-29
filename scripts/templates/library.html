@@ -1,7 +1,7 @@
-{% extends 'layout.html' %}
+{% extends 'favoritable.html' %}
 
 {% block content %}
-{% from 'macros.html' import icon %}
+{% from 'macros.html' import icon, menu_btn%}
 <div class="logo-txt">Library</div>
 
 <p>Favorites</p>
@@ -22,15 +22,18 @@
             </span>
         </a>
 
-        <form action="/favorite" method="post" class="no-margin-padding">
-            <input type="hidden" name="endpoint" value="{{ request.endpoint }}">
-            <button type="submit" class="button button-favorite" name="book_id" value="{{ book.id }}">
-                    {{ icon('Heart', size=25, color="red") }}
-            </button>
-        </form>
+        <button type="button" class="button button-favorite" onclick="toggle_favorite(this, '{{book.id}}')">
+            {% if book in favorites %}
+                {{ icon('Heart', size=25, color="red") }}
+            {% else %}
+                {{ icon('Heart', size=25) }}
+            {% endif %}
+        </button>
     </div>
     {% endfor %}
 </div>
+
+{{ menu_btn('search', 'Swipe', 'Search books', 'Find your favourites') }}
 <!-- <p>Explore</p>
 <div class="horiz-scroll-area">
     {% for book in favorites %}

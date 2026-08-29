@@ -1,7 +1,5 @@
 import numpy as np
 import vector_utils
-from sklearn.preprocessing import StandardScaler    
-from sklearn.preprocessing import normalize    
 import json
 
 
@@ -54,10 +52,10 @@ class LinUCB():
 
         self.seen_indices = seen_indices
 
-        self.A_inv = np.eye(n_features)
-        self.b = np.zeros(n_features)
+        self.A_inv = np.eye(n_features, dtype=np.float32)
+        self.b = np.zeros(n_features, dtype=np.float32)
 
-        self.book_vectors = book_vectors
+        self.book_vectors = np.array(book_vectors, dtype=np.float32)
 
         self.alpha = alpha
     
@@ -76,16 +74,22 @@ class LinUCB():
         return result
         
     def recommend(self, seen_indices: set):
-        scores = []
-        candidates = []
-        for i in range(len(self.book_vectors)):
-            if i in seen_indices:
-                continue
-            
-            candidates.append(i)
-            scores.append(self.score(i))
+        candidates = np.arange(len(self.book_vectors))
 
-        best = np.argmax(scores)
+        theta = self.A_inv @ self.b
+
+        #mat mul for scores
+        expected = self.book_vectors @ theta
+        uncertainty = np.sqrt(np.sum(self.book_vectors @ self.A_inv * self.book_vectors, axis=1))
+
+        #calculate result 
+        result = expected + self.alpha * uncertainty
+
+        #boolean mask seen indices
+        seen_mask = np.array(seen_indices, dtype=int)
+        result[seen_mask] = -1
+
+        best = np.argmax(result)
         return candidates[best]
     
     def update(self, book_index: int, liked: bool) -> None:
@@ -94,26 +98,30 @@ class LinUCB():
         #update matrices
         self.A_inv -= (self.A_inv @ np.outer(book_x, book_x) @ self.A_inv) / (1 + book_x @ self.A_inv @ book_x)
         self.b += int(liked) * book_x
-        
+
+    def mass_update(self, book_indices):
+        pass
+        #rework functionality
 
 if __name__ == "__main__":
     # thriller, romance, sci-fi
-    test_vectors = np.load("output/book_vectors.npy")[:500]
+    test_vectors = np.load("output/book_vectors_reduced.npy")[:50000]
     with open("output/book_data.json", 'r', encoding="utf-8") as f:
-        book_list= json.load(f)["data"]["books"][:500]
+        book_list= json.load(f)["data"]["books"][:50000]
     
 
     # scaler = StandardScaler()
     # test_vectors = scaler.fit_transform(test_vectors)
-    test_vectors = normalize(test_vectors, norm='l2')
+    # test_vectors = normalize(test_vectors, norm='l2')
     
     recommender = LinUCB(test_vectors)
-
+    seen = []
     while True:
-        rec = recommender.recommend()
+        rec = recommender.recommend(seen)
         print(book_list[rec]["title"])
         print(book_list[rec]["genres"]["names"])
         liked = input("y/n: ") == "y"
+        seen.append(rec)
         recommender.update(rec, liked)
     
 

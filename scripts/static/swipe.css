@@ -1,0 +1,55 @@
+.swipe-stack {
+    position: relative;
+    display: flex;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+}
+
+.swipe-card {
+    position: absolute;
+    display: flex;
+    height:100%;
+    cursor: grab;
+    transition: none;
+    will-change: transform;
+    user-select: none;
+}
+
+.swipe-hint {
+    position: absolute;
+    inset: 0;
+    display:flex;
+    font-size: 4rem;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.1s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+
+.swipe-hint.left{
+    background-color: red;
+    color: white;
+}
+.swipe-hint.right{
+    background-color: green;
+    color: white;
+}
+
+.swipe-card.animate-left {
+    transition: transform 0.1s ease-in, opacity 0.1s ease-in;
+    transform: translateX(-400px) rotate(-60deg) !important;
+    opacity: 0;
+}
+
+.swipe-card.animate-right {
+    transition: transform 0.1s ease-in, opacity 0.1s ease-in;
+    transform: translateX(400px) rotate(60deg) !important;
+    opacity: 0;
+}

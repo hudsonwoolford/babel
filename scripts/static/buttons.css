@@ -19,14 +19,15 @@
     height: 100%;
     width: 1rem;
     border: 1px solid grey;
+    user-select: none;
 }
 
-.button-swipe-left {
+.button-swipe.left {
     margin-right: 1rem;
     background-color: rgb(253, 225, 225);
 }
 
-.button-swipe-right {
+.button-swipe.right {
     margin-left: 1rem;
     background-color: rgb(225, 255, 225);
 }

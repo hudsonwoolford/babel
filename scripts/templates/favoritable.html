@@ -1,0 +1,19 @@
+{% extends 'base.html'%}
+
+{% block scripts %}
+<script>
+    function toggle_favorite(button, book_id) {
+        const form_data = new FormData()
+        form_data.append('book_id', book_id)
+
+        fetch("/favorite", {method: "POST", body: form_data})
+
+        const div = button.querySelector('div')
+        if (div.style.color === 'red'){
+            div.style.color = 'white'
+        } else {
+            div.style.color = 'red'
+        }
+    }
+</script>
+{% endblock %}
