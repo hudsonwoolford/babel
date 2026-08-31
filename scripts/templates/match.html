@@ -4,7 +4,7 @@
 <!-- Bold header area -->
 <span class="swipe-header">
     <div class="logo-txt">Bindr</div>
-    <div class="emphasis txt-x-large" id="session-counter">(0/ {{ max_swipes }})</div>
+    <div class="emphasis txt-x-large" id="swipe-counter">(0/ {{ max_swipes }})</div>
 </span>
 
 <!-- Swiping area -->
@@ -28,6 +28,7 @@
 <script>
     const b_queue = {{book_queue | tojson}};
     const swipe_stack = document.getElementById("swipe-stack");
+    const swipe_counter = document.getElementById("swipe-counter")
     const threshold = 100;
 
     b_queue.forEach(b => add_card(b));
@@ -60,6 +61,7 @@
                 }
                 else {
                     console.log(data.book);
+                    swipe_counter.textContent = data.counter
                     add_card(data.book);
                 }
             });

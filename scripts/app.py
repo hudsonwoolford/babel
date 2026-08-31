@@ -107,7 +107,8 @@ def swipe():
     if liked:
         add_item_session("liked_ids", book_id)
 
-    if len(session_ids) >= SESSION_LENGTH:
+    counter = len(session_ids)
+    if counter >= SESSION_LENGTH:
         return jsonify({"done": True, "redirect":url_for("summary")})
     
     seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
@@ -116,7 +117,7 @@ def swipe():
     index = RECOMMEND.recommend(seen_indices + queued_indices)
     add_item_session("queued_ids", BOOKS[index]["id"])
 
-    return jsonify({"done": False, "book": BOOKS[index]})
+    return jsonify({"done": False, "book": BOOKS[index], "counter": f"({counter+1}/{SESSION_LENGTH})"})
 
 @app.route("/summary")
 def summary():
