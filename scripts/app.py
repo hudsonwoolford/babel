@@ -26,7 +26,7 @@ def init_session():
         ID_2_INDEX = json.load(f)
         ID_2_INDEX = {int(key):value for key, value in ID_2_INDEX.items()}
     
-    VECTORS = np.load("output/book_vectors.npy")[:50000]
+    VECTORS = np.load("output/desc_vectors.npy")[:50000]
     
     # RECOMMEND = LinUCB(VECTORS, ID_2_INDEX, alpha=0)
     RECOMMEND = LinUCB(VECTORS)
@@ -83,16 +83,19 @@ def match():
 @app.route("/match/session")
 def swipe_session():
     seen_ids = session.get("seen_ids", [])
+    session_ids = session.get("session_ids", [])
     seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
 
     init_books = []
     for _ in range(3):
         init_books.append(RECOMMEND.recommend(seen_indices + init_books))
 
+    session["queued_ids"] = [BOOKS[i]["id"] for i in init_books]
     book_queue = [BOOKS[i] for i in init_books]
 
     return render_template("match.html",
                         book_queue=book_queue,
+                        counter=len(session_ids)+1,
                         max_swipes=SESSION_LENGTH)
 
 @app.route("/swipe", methods=["POST"])
@@ -117,7 +120,7 @@ def swipe():
     index = RECOMMEND.recommend(seen_indices + queued_indices)
     add_item_session("queued_ids", BOOKS[index]["id"])
 
-    return jsonify({"done": False, "book": BOOKS[index], "counter": f"({counter+1}/{SESSION_LENGTH})"})
+    return jsonify({"done": False, "book": BOOKS[index], "counter": counter+1})
 
 @app.route("/summary")
 def summary():

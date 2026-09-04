@@ -27,9 +27,12 @@
 
 <script>
     const b_queue = {{book_queue | tojson}};
-    const swipe_stack = document.getElementById("swipe-stack");
-    const swipe_counter = document.getElementById("swipe-counter")
     const threshold = 100;
+    const swipe_stack = document.getElementById("swipe-stack");
+    const swipe_counter = document.getElementById("swipe-counter");
+    const counter = {{counter}};
+    const max_swipes = {{max_swipes}};
+    swipe_counter.textContent = `(${counter}/${max_swipes})`;
 
     b_queue.forEach(b => add_card(b));
     initialise_elements(b_queue[0]);
@@ -61,7 +64,8 @@
                 }
                 else {
                     console.log(data.book);
-                    swipe_counter.textContent = data.counter
+
+                    swipe_counter.textContent = `(${data.counter}/${max_swipes})`
                     add_card(data.book);
                 }
             });
