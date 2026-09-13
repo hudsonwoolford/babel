@@ -4,8 +4,8 @@
 {% from 'macros.html' import icon %}
 
 <form method="post">
-    <input type="text" name="search_box" value="{{ request.form.get('search_box', '') }}" placeholder="Search for a book..." autocomplete="off">
-    <button type="submit">Search</button>
+    <input type="text" name="search_box" class="search-box" value="{{ request.form.get('search_box', '') }}" placeholder="Search for a book..." autocomplete="off">
+    <!-- <button type="submit">Search</button> -->
 </form>
 
 {% if top_books %}

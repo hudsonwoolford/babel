@@ -47,10 +47,8 @@ class Weighted_Rocchio(Rocchio):
         pass
 
 class LinUCB():
-    def __init__(self, book_vectors: np.ndarray, alpha: float = 1, seen_indices: list = []):
+    def __init__(self, book_vectors: np.ndarray, alpha: float = 1):
         _, n_features = book_vectors.shape
-
-        self.seen_indices = seen_indices
 
         self.A_inv = np.eye(n_features, dtype=np.float32)
         self.b = np.zeros(n_features, dtype=np.float32)
@@ -74,8 +72,6 @@ class LinUCB():
         return result
         
     def recommend(self, seen_indices: set):
-        candidates = np.arange(len(self.book_vectors))
-
         theta = self.A_inv @ self.b
 
         #mat mul for scores
@@ -87,10 +83,10 @@ class LinUCB():
 
         #boolean mask seen indices
         seen_mask = np.array(seen_indices, dtype=int)
-        result[seen_mask] = -1
+        result[seen_mask] = -np.inf
 
         best = np.argmax(result)
-        return candidates[best]
+        return best
     
     def update(self, book_index: int, liked: bool) -> None:
         book_x = self.book_vectors[book_index]
@@ -100,8 +96,12 @@ class LinUCB():
         self.b += int(liked) * book_x
 
     def mass_update(self, book_indices):
-        pass
-        #rework functionality
+        for index in book_indices:
+            book_x = self.book_vectors[index]
+            
+            #update matrices
+            self.A_inv -= (self.A_inv @ np.outer(book_x, book_x) @ self.A_inv) / (1 + book_x @ self.A_inv @ book_x)
+            self.b += 1 * book_x
 
 if __name__ == "__main__":
     # thriller, romance, sci-fi

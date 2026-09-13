@@ -77,7 +77,7 @@ def match():
     session["session_ids"] = []
     session["liked_ids"] = []
     session["queued_ids"] = []
-    
+
     return redirect(url_for("swipe_session"))
 
 @app.route("/match/session")
@@ -85,6 +85,11 @@ def swipe_session():
     seen_ids = session.get("seen_ids", [])
     session_ids = session.get("session_ids", [])
     seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
+    fav_ids = session.get("fav_ids", [])
+
+    global RECOMMEND
+    RECOMMEND = LinUCB(VECTORS)
+    RECOMMEND.mass_update([ID_2_INDEX[b_id] for b_id in fav_ids])
 
     init_books = []
     for _ in range(3):
@@ -160,12 +165,16 @@ def favorite():
     book_id = int(request.form.get("book_id", -1))
 
     fav_ids = session.get("fav_ids", [])
+    seen_ids = session.get("seen_ids", [])
     if book_id in set(fav_ids):
         fav_ids.remove(book_id)
     else:
         fav_ids.append(book_id)
+        if book_id not in set(seen_ids):
+            seen_ids.append(book_id)
 
     session["fav_ids"] = fav_ids
+    session["seen_ids"] = seen_ids
 
     return '', 204
 

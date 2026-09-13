@@ -143,3 +143,13 @@ body {
     /* border-radius: 50px; */
     border: 1px solid black;
 }
+
+/* Search */
+.search-box {
+    border: 1px solid black;
+    border-radius: 15px;
+    width: 100%;
+    margin-bottom: 1rem;
+    display: flex;
+    padding: 0.5rem;
+}

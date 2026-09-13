@@ -4,7 +4,7 @@
 <!-- Bold header area -->
 <span class="swipe-header">
     <div class="logo-txt">Bindr</div>
-    <div class="emphasis txt-x-large" id="swipe-counter">(0/ {{ max_swipes }})</div>
+    <div class="emphasis txt-x-large" id="swipe-counter">(1/ {{ max_swipes }})</div>
 </span>
 
 <!-- Swiping area -->
@@ -78,9 +78,9 @@
         document.getElementById("book-title").textContent = book.title;
         document.getElementById("book-author").textContent = book.authors[0];
 
-        let rating = Math.round(book.rating, 1)
+        let rating = Math.round(book.rating * 10) / 10
         let filled = Math.round(rating)
-        document.getElementById("book-rating").textContent = `${rating} ${'★'.repeat(filled)}${'☆'.repeat(5 - filled)}`;
+        document.getElementById("book-rating").textContent = `${rating.toFixed(1)} ${'★'.repeat(filled)}${'☆'.repeat(5 - filled)} (${book.ratings_count})`;
         document.getElementById("book-genres").textContent = book.genres.names.slice(0, 3).join(', ');
         if (book.description) {
             adj_desc = book.description

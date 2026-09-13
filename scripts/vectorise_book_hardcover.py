@@ -130,16 +130,22 @@ def main():
         descriptions.append(desc)
 
     #create description vectors
-    embedding_model.init_model()
-    desc_vecs = embedding_model.embed_texts(descriptions)
-    desc_vecs = dimension_reduction.change_dimensions(desc_vecs, 100)
+    desc_vecs = np.load("output/desc_vectors.npy")
+    # embedding_model.init_model()
+    # desc_vecs = embedding_model.embed_texts(descriptions)
+    # desc_vecs = dimension_reduction.change_dimensions(desc_vecs, 100)
+
+    #create rating vectors
+    pop_val = np.log1p(np.asarray(ratings, dtype=np.float32))
+    pop_val = pop_val / np.max(pop_val)
+    pop_val = pop_val[:, None]
 
     #concatenate into final vector
-    final_vecs = vector_utils.list_norm_concatenate(genre_vecs, mood_vecs, desc_vecs)
+    final_vecs = vector_utils.list_norm_concatenate(genre_vecs, mood_vecs, desc_vecs, pop_val)
     final_vecs = normalize(final_vecs, norm='l2')
 
     #rating scaling
-    final_vecs *= np.sqrt(np.asarray(ratings))[:, None]
+    # final_vecs *= np.sqrt(np.asarray(ratings))[:, None]
 
     #save final
     np.save("output/book_vectors.npy", final_vecs)
