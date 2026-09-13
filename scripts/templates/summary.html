@@ -31,9 +31,9 @@
 
         <button type="button" class="button button-favorite" onclick="toggle_favorite(this, '{{book.id}}')">
             {% if book.id in fav_ids %}
-                {{ icon('Heart', size=25, color="red") }}
+                {{ icon('Heart', color="red") }}
             {% else %}
-                {{ icon('Heart', size=25) }}
+                {{ icon('Heart') }}
             {% endif %}
         </button>
     </div>

@@ -35,6 +35,8 @@
 .button-footer {
     display: flex;
     color:white;
+    height: 3.5rem;
+    width: 3.5rem;
     padding: 0px;
     margin: 0px;
     border: 0px;
@@ -55,6 +57,11 @@
     border: 1px solid var(--shadow-color);
     margin: 0;
     margin-bottom: 1rem;
+}
+
+.icon.menu {
+   width:4rem;
+   height:4rem;
 }
 
 .button-menu-main {

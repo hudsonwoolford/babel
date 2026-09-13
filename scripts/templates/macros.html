@@ -1,5 +1,5 @@
-{% macro icon(name, size=24, color='white') %}
-    <div style="width: {{size}}px; height: {{size}}px; color: {{color}};"> <!-- erros are weird -->
+{% macro icon(name, color='white') %}
+    <div style="max-width: 100%; max-height: 100%; aspect-ratio: 1/1; width: auto; height:100%; color: {{color}};"> <!-- erros are weird -->
         {% include 'icons/' ~ name ~ '_Icon.svg' %}
     </div> 
 {% endmacro %}
@@ -7,7 +7,7 @@
 {% macro menu_btn(url_name, icon_name, title, description) %}
     <a href="{{ url_for(url_name) }}" class="button button-menu">
         <div class="button-menu-main">
-            <div class="icon">{{ icon(icon_name, size=60) }}</div>
+            <div class="icon menu">{{ icon(icon_name) }}</div>
             <div class="button-menu-info">
                 <span class="emphasis txt-larger">{{title}}</span>
                 <span>{{description}}</span>

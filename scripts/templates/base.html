@@ -14,35 +14,36 @@
 
         {% endblock %}
 
+
         {% block footer %}
         {% from 'macros.html' import icon%}
         <footer class="footer-menu">
             <a href="{{ url_for('index') }}" class="button button-footer"> 
                 {% if request.endpoint == 'index' %}
-                    {{ icon('Home', size=40, color='black') }}
+                    {{ icon('Home', color='black') }}
                 {% else %}
-                    {{ icon('Home', size=40) }}
+                    {{ icon('Home') }}
                 {% endif %} 
             </a>
             <a href="{{ url_for('match') }}" class="button button-footer">
                 {% if request.endpoint == 'swipe_session' %}
-                    {{ icon('Swipe', size=40, color='black') }}
+                    {{ icon('Swipe', color='black') }}
                 {% else %}
-                    {{ icon('Swipe', size=40) }}
+                    {{ icon('Swipe') }}
                 {% endif %} 
             </a>
             <a href="{{ url_for('library') }}" class="button button-footer"> 
                 {% if request.endpoint == 'library' %}
-                    {{ icon('Library', size=40, color='black') }}
+                    {{ icon('Library', color='black') }}
                 {% else %}
-                    {{ icon('Library', size=40) }}
+                    {{ icon('Library') }}
                 {% endif %} 
             </a>
             <a href="{{ url_for('settings') }}" class="button button-footer"> 
                 {% if request.endpoint == 'settings' %}
-                    {{ icon('Settings', size=40, color='black') }}
+                    {{ icon('Settings', color='black') }}
                 {% else %}
-                    {{ icon('Settings', size=40) }}
+                    {{ icon('Settings') }}
                 {% endif %} 
             </a>
         </footer>

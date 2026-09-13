@@ -4,7 +4,11 @@
     {% from 'macros.html' import icon, menu_btn %}
     <div class="logo-txt">Bindr</div>
     <div class="txt-large">Find your next read</div>
-    <div>{{ icon('Spines', size=360, color='black') }} </div>
+
+    <div class="logo-img">
+        {{ icon('Spines', color='black') }} 
+    </div>
+
     {{ menu_btn('match', 'Swipe', 'Swipe session', 'Discover new titles') }}
     {{ menu_btn('library', 'Library', 'Library', 'Organise your collection') }}
     {{ menu_btn('settings', 'Settings', 'Settings', 'Customise your experience') }}
