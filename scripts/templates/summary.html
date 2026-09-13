@@ -21,7 +21,9 @@
     
     <div class="h-book-card">
         <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+            {% if book.image.url %}
             <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+            {% endif %}
             <span class="book-card-info">
                 <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
                 <span>{{ book.authors[0] | truncate(20)}}</span>

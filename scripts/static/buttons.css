@@ -87,5 +87,15 @@
 .button-favorite {
     margin: 0;
     padding: 0.5rem;
+    height: 2.5rem;
+    width: 2.5rem;
     border: 1px solid var(--shadow-color);
 }
+
+.button-pairing {
+    display:flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+

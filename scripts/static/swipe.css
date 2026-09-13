@@ -84,7 +84,20 @@
 .book-info {
     display: flex;
     flex-direction: column;
-    height:30%;
     gap: 0.5rem;
     margin-top: 1rem;
+
+    max-height: 34%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Hide scrollbar - Firefox */
+    scrollbar-width: none;
+
+    /* Hide scrollbar - IE/Edge (old) */
+    -ms-overflow-style: none;
+}
+
+/* Hide scrollbar - Chrome, Safari */
+.book-info::-webkit-scrollbar {
+    display: none;
 }

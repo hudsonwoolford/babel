@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
     book_titles = np.array([book["title"].lower() for book in book_list], dtype=str)
     del book_list
-    
+
     # with open("output/doc_data.json") as f:
     #     doc_data = json.load(f)
 

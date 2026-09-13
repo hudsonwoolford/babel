@@ -3,17 +3,32 @@
 {% block content %}
 {% from 'macros.html' import icon %}
 
+<div class="logo-txt">Search</div>
+<div class="txt-large">Explore our catalogue</div>
+
+
+<!-- Search box -->
 <form method="post">
-    <input type="text" name="search_box" class="search-box" value="{{ request.form.get('search_box', '') }}" placeholder="Search for a book..." autocomplete="off">
+    <input type="text" name="search_box" class="search-box" value="{{ request.form.get('search_box', '') }}" placeholder="Search for a book..." autocomplete="off" maxlength="100" required>
     <!-- <button type="submit">Search</button> -->
 </form>
+<!-- Show error messages from validation -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
-{% if top_books %}
 <div class="scroll-area">
+    {% if top_books %}
     {% for book in top_books %}
     <div class="h-book-card">
         <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+            {% if book.image.url %}
             <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+            {% endif %}
             <span class="book-card-info">
                 <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
                 <span>{{ book.authors[0] | truncate(20)}}</span>
@@ -29,7 +44,9 @@
         </button>
     </div>
     {% endfor %}
+    {%else%}
+    <p class="txt-smaller italics">Nothing to show yet...</p>
+    {% endif %}
 </div>
-{% endif %}
 
 {% endblock %}

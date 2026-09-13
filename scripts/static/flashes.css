@@ -1,0 +1,31 @@
+.flash {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.flash-error {
+    background-color: #fdecea;
+    color: #b3261e;
+    border: 1px solid #f5c6cb;
+}
+
+.flash-success {
+    background-color: #e6f4ea;
+    color: #1e7a34;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-info {
+    background-color: #e8f0fe;
+    color: #1a56b0;
+    border: 1px solid #b6d4fe;
+}
+
+.flash-warning {
+    background-color: #fff8e1;
+    color: #8a6d3b;
+    border: 1px solid #ffe69c;
+}

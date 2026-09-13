@@ -4,7 +4,7 @@ import vector_utils
 import random
 from recommender import LinUCB, Rocchio
 from searcher import Levenshtein
-from flask import Flask, render_template, session, request, redirect, url_for, jsonify
+from flask import Flask, render_template, session, request, redirect, url_for, jsonify, flash, get_flashed_messages
 
 app = Flask(__name__)
 app.secret_key = "bindr-session"
@@ -33,10 +33,10 @@ def init_session():
     SEARCH = Levenshtein([book["title"] for book in BOOKS])
 
 
-@app.route('/logout')
+@app.route('/clear', methods=['POST'])
 def logout():
     session.clear()
-    return "Logged out and session cleared!"
+    return render_template("index.html")
 
 @app.route("/")
 def index():
@@ -62,9 +62,17 @@ def library():
 def search():
     top_books = None
     if request.method == "POST":
-        query = request.form.get("search_box")
-        top_n = SEARCH.search(query)
-        top_books = [BOOKS[i] for i in top_n]
+        query = request.form.get("search_box").strip()
+
+        if not query:
+            flash("Please enter a query", "error")
+        elif len(query) > 100:
+            flash("Please enter a query less than 100 characters", "error")
+        else:
+            top_n = SEARCH.search(query)
+            top_books = [BOOKS[i] for i in top_n]
+
+
     
     fav_ids = session.get("fav_ids", [])
     return render_template("search.html", top_books=top_books, fav_ids=fav_ids)
