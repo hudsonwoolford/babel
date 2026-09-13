@@ -112,7 +112,7 @@
     }
 
     function init_listeners(card) {
-            card.addEventListener("pointerdown", (e) => {
+        card.addEventListener("pointerdown", (e) => {
             x_start = e.clientX;
             is_dragging = true;
             
@@ -152,6 +152,14 @@
                 card.style.transform = 'translateX(0) rotate(0deg)';
                 card.querySelectorAll(".swipe-hint").forEach(h => h.style.opacity = 0);
             }
+        })
+
+        card.addEventListener("pointercancel", () => {
+            is_dragging = false;
+            
+            card.style.transition = 'transform 0.3s ease';
+            card.style.transform = 'translateX(0) rotate(0deg)';
+            card.querySelectorAll(".swipe-hint").forEach(h => h.style.opacity = 0);
         })
     }
 </script>
