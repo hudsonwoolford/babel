@@ -4,6 +4,15 @@
     align-items: center;
 }
 
+.swipe-direction {
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    font-size: xx-large;
+    font-weight: bold;
+    height:100%;
+}
+
 .swipe-area {
     justify-content: space-between;
     display: flex;
@@ -32,6 +41,7 @@
     will-change: transform;
     user-select: none;
     touch-action: none;
+    transform: scale(0.8);
 }
 
 .cover-image{
@@ -67,6 +77,11 @@
 .swipe-hint.right{
     background-color: green;
     color: white;
+}
+
+.swipe-card.front-card {
+    transition: transform 0.1s ease-in;
+    transform: scale(1);
 }
 
 .swipe-card.animate-left {

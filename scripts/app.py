@@ -7,7 +7,7 @@ from searcher import Levenshtein
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify, flash, get_flashed_messages
 
 app = Flask(__name__)
-app.secret_key = "bindr-session"
+app.secret_key = "babel-session"
 
 BOOKS = None
 ID_2_INDEX = None
@@ -26,7 +26,7 @@ def init_session():
         ID_2_INDEX = json.load(f)
         ID_2_INDEX = {int(key):value for key, value in ID_2_INDEX.items()}
     
-    VECTORS = np.load("output/desc_vectors.npy")[:50000]
+    VECTORS = np.load("output/book_vectors_reduced.npy")[:50000]
     
     # RECOMMEND = LinUCB(VECTORS, ID_2_INDEX, alpha=0)
     RECOMMEND = LinUCB(VECTORS)
@@ -103,8 +103,8 @@ def swipe_session():
     for _ in range(3):
         init_books.append(RECOMMEND.recommend(seen_indices + init_books))
 
-    session["queued_ids"] = [BOOKS[i]["id"] for i in init_books]
     book_queue = [BOOKS[i] for i in init_books]
+    session["queued_ids"] = [book["id"] for book in book_queue]
 
     return render_template("match.html",
                         book_queue=book_queue,
@@ -113,32 +113,37 @@ def swipe_session():
 
 @app.route("/swipe", methods=["POST"])
 def swipe():
+    #update session variables
     book_id = int(request.form.get("book_id", -1))
     session_ids = add_item_session("session_ids", book_id)
     seen_ids = add_item_session("seen_ids", book_id)
     queued_ids = session.get("queued_ids", [])
 
+    #update recommendations and add to liked list
     liked = request.form.get("direction") == "right"
     RECOMMEND.update(ID_2_INDEX[book_id], liked)
     if liked:
         add_item_session("liked_ids", book_id)
 
+    #test whether session is complete
     counter = len(session_ids)
     if counter >= SESSION_LENGTH:
         return jsonify({"done": True, "redirect":url_for("summary")})
-    
+
+    #collect all banned indices
     seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
     queued_indices = [ID_2_INDEX[b_id] for b_id in queued_ids]
 
+    #get new book considering banned indices and add to queue
     index = RECOMMEND.recommend(seen_indices + queued_indices)
     add_item_session("queued_ids", BOOKS[index]["id"])
 
+    #return new book to javascript
     return jsonify({"done": False, "book": BOOKS[index], "counter": counter+1})
 
 @app.route("/summary")
 def summary():
     liked_ids = session.get("liked_ids", [])
-    print(liked_ids)
     liked_books = [BOOKS[ID_2_INDEX[book_id]] for book_id in liked_ids]
 
     unique_genres = set()

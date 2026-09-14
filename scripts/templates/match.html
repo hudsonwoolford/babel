@@ -3,17 +3,17 @@
 {% block content %}
 <!-- Bold header area -->
 <span class="swipe-header">
-    <div class="logo-txt">Bindr</div>
+    <div class="logo-txt">Babel</div>
     <div class="emphasis txt-x-large" id="swipe-counter">(1/ {{ max_swipes }})</div>
 </span>
 
 <!-- Swiping area -->
 <div class="swipe-area">
-    <button id="btn-left" class="button button-swipe left" name="direction" value="left">〈</button>
+    <div class="swipe-direction">〈</div>
     <div class="swipe-stack" id="swipe-stack">
 
     </div>
-    <button id="btn-right" class="button button-swipe right" name="direction" value="right">⟩</button>
+    <div class="swipe-direction">⟩</div>
 </div>
 
 <!-- Book info area -->
@@ -35,47 +35,74 @@
     const max_swipes = {{max_swipes}};
     swipe_counter.textContent = `(${counter}/${max_swipes})`;
 
+    const NO_COVER_SVG = `data:image/svg+xml,${encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
+    <rect width="200" height="300" fill="#e0e0e0"/>
+    <text x="100" y="150" font-family="sans-serif" font-size="14" fill="#888"
+            text-anchor="middle" dominant-baseline="middle">No Cover</text>
+    </svg>`)}`;
+
     b_queue.forEach(b => add_card(b));
     initialise_elements(b_queue[0]);
 
     let x_start = 0;
     let is_dragging = false;
+    let is_busy = false;
+    let next_card = null;
 
-    document.getElementById("btn-left").addEventListener("click", ()=>trigger_swipe("left"));
-    document.getElementById("btn-right").addEventListener("click", ()=>trigger_swipe("right"));
-    
+    // swipe function that could be triggered by buttons or touch
     function trigger_swipe(direction) {
-        front_card = swipe_stack.lastElementChild;
+        if (swipe_stack.children.length == 0 || is_busy) { //no more cards left to swipe
+            return; //stop function
+        } 
 
+        is_busy = true;
+
+        //get front/swiped card
+        front_card = swipe_stack.lastElementChild;
+        
+        //collect data from front/swiped card
         const form_data = new FormData();
         form_data.append('book_id', JSON.parse(front_card.dataset.book).id);
         form_data.append('direction', direction);
 
+        //animate card out
         front_card.style = '';
         front_card.classList.add(`animate-${direction}`);
 
-        const new_front = swipe_stack.children[swipe_stack.children.length-2];
-        initialise_elements(JSON.parse(new_front.dataset.book));
+        //init new front card if exists - otherwise should be initialised by add card with no children case
+        if (swipe_stack.children.length >= 2) {
+            const new_front = swipe_stack.children[swipe_stack.children.length-2];
+            new_front.classList.add("front-card")
+            initialise_elements(JSON.parse(new_front.dataset.book));
+        }
         
+        //delete card after transition complete
         front_card.addEventListener("transitionend", () => {
             front_card.remove();
-            fetch("/swipe", {method: "POST", body: form_data}).then(res => res.json()).then(data => {
-                if (data.done) {
-                    window.location.href = data.redirect;
-                }
-                else {
-                    console.log(data.book);
-
-                    swipe_counter.textContent = `(${data.counter}/${max_swipes})`
-                    add_card(data.book);
-                }
-            });
+            is_busy = false;
         }, {once:true})
-        
+
+        //fetch new book
+        fetch("/swipe", {method: "POST", body: form_data}).then(res => res.json()).then(data => {
+            if (data.done) { //session complete
+                window.location.href = data.redirect;
+                return;
+            }
+            if (!data.book) { // don't add a broken card
+                console.error("No book returned from /swipe", data);
+                return; 
+            }
+            //session incomplete -> new book
+            console.log(data.book);
+
+            swipe_counter.textContent = `(${data.counter}/${max_swipes})`
+            add_card(data.book);
+        });
     }
 
+    // updates all book info elements
     function initialise_elements(book) {
-        // document.getElementById("session-counter").innerHTML
         document.getElementById("book-title").textContent = book.title;
         document.getElementById("book-author").textContent = book.authors[0];
 
@@ -93,21 +120,29 @@
     }
 
     function add_card(book) {
+        console.log(book)
+        //create card element
         const card = document.createElement("div");
         card.classList.add("swipe-card");
         card.dataset.book = JSON.stringify(book);
 
+        //content of the card, including swipe hints/overlays
+        cover_url = book.image && book.image.url ? book.image.url : NO_COVER_SVG;
         card.innerHTML = `
-        <img id="book-image" src="${ book.image.url }" alt="Book cover" class="cover-image" draggable="false"> 
+        <img id="book-image" src="${ cover_url }" alt="Book cover" class="cover-image" draggable="false"> 
         <div class="swipe-hint left cover-image">X</div>
         <div class="swipe-hint right cover-image">♥</div>
         `;
 
-        init_listeners(card);
-        if (swipe_stack.children.length == 0) {
+        init_listeners(card); //touch swiping listeners
+
+        //add card to list
+        if (swipe_stack.children.length == 0) { //no children -> just add
+            card.classList.add("front-card");
             swipe_stack.appendChild(card);
+            initialise_elements(book);
         }
-        else {
+        else { //children -> add to back
             swipe_stack.insertBefore(card, swipe_stack.firstElementChild);
         }
     }
@@ -120,6 +155,14 @@
             card.style.transition = 'none';
             e.preventDefault();
             card.setPointerCapture(e.pointerId);
+
+            //set next card
+            if (swipe_stack.children.length >= 2) {
+                next_card = swipe_stack.children[swipe_stack.children.length-2]
+            }
+            else {
+                next_card = null
+            }
         })
 
         card.addEventListener("pointermove", (e) => {
@@ -130,6 +173,9 @@
 
             progress = Math.min(Math.abs(x_offset), threshold)/threshold * 0.35;
 
+
+            asymp_remap = Math.abs(x_offset) / (Math.abs(x_offset) + 8)
+            if (next_card) next_card.style.transform = `scale(${0.8 + 0.2 * asymp_remap})`;
             card.querySelector(".swipe-hint.left").style.opacity = x_offset < 0 ? progress : 0;
             card.querySelector(".swipe-hint.right").style.opacity = x_offset > 0 ? progress : 0;
 
