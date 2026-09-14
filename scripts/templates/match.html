@@ -52,7 +52,7 @@
 
     // swipe function that could be triggered by buttons or touch
     function trigger_swipe(direction) {
-        if (swipe_stack.children.length == 0 || is_busy) { //no more cards left to swipe
+        if (swipe_stack.children.length == 0 || is_busy) { //no more cards left to swipe or busy
             return; //stop function
         } 
 
