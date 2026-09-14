@@ -5,6 +5,9 @@ import random
 from recommender import LinUCB, Rocchio
 from searcher import Levenshtein
 from flask import Flask, render_template, session, request, redirect, url_for, jsonify, flash, get_flashed_messages
+import threading
+import time
+import uuid
 
 app = Flask(__name__)
 app.secret_key = "babel-session"
@@ -12,12 +15,43 @@ app.secret_key = "babel-session"
 BOOKS = None
 ID_2_INDEX = None
 VECTORS = None
-RECOMMEND = None
 SEARCH = None
 SESSION_LENGTH = 20
 
+#per user recommendation
+RECOMMEND_STORE = {}
+STORE_LOCK = threading.Lock()
+SESSION_TTL = 60 * 30  #delete recommenders unused for 30 min
+
+@app.before_request
+def ensure_sid():
+    if "session_id" not in session:
+        session["session_id"] = str(uuid.uuid4())
+
+def get_recommender(session_id):
+    with STORE_LOCK:
+        #get session recommender
+        entry = RECOMMEND_STORE.get(session_id)
+        if entry == None:
+            entry = {
+                "model" : LinUCB(VECTORS),
+                "lock" : threading.Lock(),
+                "last_used": time.time()
+            }
+            RECOMMEND_STORE[session_id] = entry
+
+        RECOMMEND_STORE[session_id]["last_used"] = time.time()
+
+        #delete unused recommenders
+        unused = [k for k, v in RECOMMEND_STORE.items() if k != session_id and time.time() - v["last_used"] > SESSION_TTL]
+
+        for k in unused:
+            del RECOMMEND_STORE[k]
+
+        return entry
+
 def init_session():
-    global BOOKS, ID_2_INDEX, VECTORS, RECOMMEND, SEARCH
+    global BOOKS, ID_2_INDEX, VECTORS, SEARCH
 
     with open("output/book_data.json") as f:
         BOOKS = json.load(f)["data"]["books"][:50000]
@@ -28,13 +62,15 @@ def init_session():
     
     VECTORS = np.load("output/book_vectors_reduced.npy")[:50000]
     
-    # RECOMMEND = LinUCB(VECTORS, ID_2_INDEX, alpha=0)
-    RECOMMEND = LinUCB(VECTORS)
     SEARCH = Levenshtein([book["title"] for book in BOOKS])
 
 
 @app.route('/clear', methods=['POST'])
-def logout():
+def clear():
+    sid = session.get("session_id")
+    if sid:
+        with STORE_LOCK:
+            RECOMMEND_STORE.pop(sid, None)
     session.clear()
     return render_template("index.html")
 
@@ -95,13 +131,14 @@ def swipe_session():
     seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
     fav_ids = session.get("fav_ids", [])
 
-    global RECOMMEND
-    RECOMMEND = LinUCB(VECTORS)
-    RECOMMEND.mass_update([ID_2_INDEX[b_id] for b_id in fav_ids])
+    entry = get_recommender(session["session_id"])
+    with entry["lock"]:
+        entry["model"] = LinUCB(VECTORS)
+        entry["model"].mass_update([ID_2_INDEX[b_id] for b_id in fav_ids])
 
-    init_books = []
-    for _ in range(3):
-        init_books.append(RECOMMEND.recommend(seen_indices + init_books))
+        init_books = []
+        for _ in range(3):
+            init_books.append(entry["model"].recommend(seen_indices + init_books))
 
     book_queue = [BOOKS[i] for i in init_books]
     session["queued_ids"] = [book["id"] for book in book_queue]
@@ -113,33 +150,35 @@ def swipe_session():
 
 @app.route("/swipe", methods=["POST"])
 def swipe():
-    #update session variables
-    book_id = int(request.form.get("book_id", -1))
-    session_ids = add_item_session("session_ids", book_id)
-    seen_ids = add_item_session("seen_ids", book_id)
-    queued_ids = session.get("queued_ids", [])
+    entry = get_recommender(session["session_id"])
+    with entry["lock"]:
+        #update session variables
+        book_id = int(request.form.get("book_id", -1))
+        session_ids = add_item_session("session_ids", book_id)
+        seen_ids = add_item_session("seen_ids", book_id)
+        queued_ids = session.get("queued_ids", [])
 
-    #update recommendations and add to liked list
-    liked = request.form.get("direction") == "right"
-    RECOMMEND.update(ID_2_INDEX[book_id], liked)
-    if liked:
-        add_item_session("liked_ids", book_id)
+        #update recommendations and add to liked list
+        liked = request.form.get("direction") == "right"
+        entry["model"].update(ID_2_INDEX[book_id], liked)
+        if liked:
+            add_item_session("liked_ids", book_id)
 
-    #test whether session is complete
-    counter = len(session_ids)
-    if counter >= SESSION_LENGTH:
-        return jsonify({"done": True, "redirect":url_for("summary")})
+        #test whether session is complete
+        counter = len(session_ids)
+        if counter >= SESSION_LENGTH:
+            return jsonify({"done": True, "redirect":url_for("summary")})
 
-    #collect all banned indices
-    seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
-    queued_indices = [ID_2_INDEX[b_id] for b_id in queued_ids]
+        #collect all banned indices
+        seen_indices = [ID_2_INDEX[b_id] for b_id in seen_ids]
+        queued_indices = [ID_2_INDEX[b_id] for b_id in queued_ids]
 
-    #get new book considering banned indices and add to queue
-    index = RECOMMEND.recommend(seen_indices + queued_indices)
-    add_item_session("queued_ids", BOOKS[index]["id"])
+        #get new book considering banned indices and add to queue
+        index = entry["model"].recommend(seen_indices + queued_indices)
+        add_item_session("queued_ids", BOOKS[index]["id"])
 
-    #return new book to javascript
-    return jsonify({"done": False, "book": BOOKS[index], "counter": counter+1})
+        #return new book to javascript
+        return jsonify({"done": False, "book": BOOKS[index], "counter": counter+1})
 
 @app.route("/summary")
 def summary():
@@ -200,6 +239,7 @@ def book_info(id):
 
 @app.template_filter('stars')
 def stars(rating, max=5):
+    rating = rating if rating else 0
     rating = round(float(rating), 1)
     filled = round(rating)
     return f"{rating} {'★' * filled}{'☆' * (max - filled)}"
