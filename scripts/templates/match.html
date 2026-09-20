@@ -6,7 +6,6 @@
     <div class="logo-txt">Babel</div>
     <div class="emphasis txt-x-large" id="swipe-counter">(1/ {{ max_swipes }})</div>
 </span>
-
 <!-- Swiping area -->
 <div class="swipe-area">
     <div class="swipe-direction">〈</div>
@@ -112,8 +111,8 @@
         document.getElementById("book-genres").textContent = book.genres.names.slice(0, 3).join(', ');
         if (book.description) {
             adj_desc = book.description
-            if (book.description.length > 250){
-                adj_desc = `${book.description.slice(0, 250)}...`;
+            if (book.description.length > 1000){
+                adj_desc = `${book.description.slice(0, 1000)}...`;
             }
             document.getElementById("book-description").textContent = adj_desc;
         }

@@ -2,6 +2,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 0.5rem;
 }
 
 .swipe-direction {
@@ -10,7 +11,7 @@
     justify-content: center;
     font-size: xx-large;
     font-weight: bold;
-    width:3.5rem;
+    width:15%;
     height:100%;
 }
 

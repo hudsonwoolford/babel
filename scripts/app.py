@@ -151,6 +151,7 @@ def swipe_session():
 @app.route("/swipe", methods=["POST"])
 def swipe():
     entry = get_recommender(session["session_id"])
+    print(entry["lock"].locked())
     with entry["lock"]:
         #update session variables
         book_id = int(request.form.get("book_id", -1))
