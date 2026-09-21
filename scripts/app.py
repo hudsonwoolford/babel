@@ -82,7 +82,7 @@ def index():
 
 @app.route("/taste")
 def taste():
-    profile_books = [ID_2_INDEX[book_id] for book_id in [427578, 381329, 379647, 139773]]
+    profile_books = [ID_2_INDEX[book_id] for book_id in [427578, 379647, 139773]]
     session["profiled"] = True
     return render_template("taste.html", profilers=[BOOKS[ind] for ind in profile_books])
 
