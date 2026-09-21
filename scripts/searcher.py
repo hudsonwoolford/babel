@@ -4,76 +4,6 @@ import json
 import re
 import time
 
-class BM25:
-    def __init__(self,
-                 term_data: dict,
-                 doc_data: dict,
-                 k: float, 
-                 b: float):
-        
-        self.term_data = term_data
-        self.doc_data = doc_data
-
-        self.k = k
-        self.b = b
-
-        self.N = len(doc_data)
-        self.avg_dl = np.mean(list(doc_data.values()))
-
-    # inverse document frequency
-    def inverse_df(self, n_q: int):
-        numer = self.N - n_q + 0.5
-        denom = n_q + 0.5 #cannot be zero?
-        
-        return np.log(numer / denom + 1)
-    
-    # term frequency
-    def term_f(self, freq: int, d_length: int):
-        numer = self.k * freq
-        denom = freq + self.k * (1 - self.b + self.b * (d_length / self.avg_dl))
-        denom = 1 if denom == 0 else denom
-        return numer / denom
-    
-    def score(self, keywords: list, doc_id: int):
-        
-        keyword_weights = []
-        d_length = self.doc_data[str(doc_id)] #number of terms in document
-        for kw in keywords:
-            docs_containing = self.term_data.get(kw, [])
-            n_q = len(docs_containing) #number of documents containing keyword
-            if n_q == 0:
-                continue
-
-            in_doc = doc_id in set(docs_containing)
-
-            inverse_doc = self.inverse_df(n_q)
-            term_freq = self.term_f(int(in_doc), d_length)
-
-            keyword_weights.append(inverse_doc * term_freq)
-
-        return np.sum(keyword_weights)
-
-    def rank(self, query: str):
-        keywords = tokenise(query)
-
-        doc_ids = np.array(list(self.doc_data.keys()), dtype=int)
-        scores = [self.score(keywords, doc_id) for doc_id in doc_ids]
-        sorted_args = np.argsort(scores)[::-1]
-
-        return doc_ids[sorted_args]
-
-class Soundex:
-
-    def __init__(self):
-        pass
-
-    def encode(self, text: str):
-        # Drop duplicate letters, except for c.
-        text = re.sub(r"([a-bd-z])\1", r"\1", text, flags=re.IGNORECASE)
-
-        # If the word begins with 'KN', 'GN', 'PN', 'AE', 'WR', drop the first letter.
-        text = re.sub(r"\b(:)(*)", r"\1", text, flags=re.IGNORECASE)
-
 class Levenshtein:
     # tokenize queries and titles
     # check for token matches using fuzzy matching
@@ -84,6 +14,7 @@ class Levenshtein:
     # final levenstein distance calculation
     def __init__(self, options: list):
         self.options = np.array(options)
+        self.tokens = [tokenise(o) for o in options]
 
     def fuzzy_match(self, w1: str, w2: str,
                     min_length: int = 3,
@@ -108,45 +39,52 @@ class Levenshtein:
             return False
         
         #levenshtein distance barrier
-        norm_dist = 1 - self.ldistance(w1, w2) / max_len
+        norm_dist = 1 - Levenshtein.ldistance(w1, w2) / max_len
         if norm_dist < min_lsim:
             return False
         
         #passed all barriers
         return True
 
-    def coarse_filter(self, a: str, b: str):
-        a_words = tokenise(a)
-        b_words = tokenise(b)
+    def coarse_filter(self, q_words, b_words):
+        if not q_words or not b_words:
+            return 0
 
-        matches = 0
-        for b_w in b_words:
-            for a_w in a_words:
-                matches += 1 if self.fuzzy_match(a_w, b_w) else 0
+        q_hits = set()
+        b_hits = set()
+        for i, q_w in enumerate(q_words):
+            for j, b_w in enumerate(b_words):
+                if self.fuzzy_match(q_w, b_w):
+                    q_hits.add(i)
+                    b_hits.add(j)
 
-        checks = len(b_words) * len(a_words)
-        checks = 1 if checks == 0 else checks
+        #prevent division by zero
+        q_length = len(q_words) if len(q_words) != 0 else 1
+        b_length = len(b_words) if len(b_words) != 0 else 1
 
-        curved_checks = 2 / (1 + np.exp(-(checks-1)))
+        return len(q_hits) / q_length + 0.1 * len(b_hits) / b_length
 
-        return matches / curved_checks
+    def sliding_lsim(self, q_words, b_words):
+        if not q_words or not b_words:
+            return 0
 
-    def sliding_lsim(self, a: str, b: str):
-        b_words = tokenise(b)
-        
-        best = -1
+        shorter, longer = sorted((q_words,b_words), key=len)
+        short_sub = ' '.join(shorter)
+        n_short = len(shorter)
 
-        #get every possible sub-array
-        for i in range(len(b_words)):
-            for j in range(i+1, len(b_words)+1):
-                sub_text = ' '.join(b_words[i:j])
-                similarity = 1 - self.ldistance(sub_text, a) / max(len(a), len(sub_text))
+        best = 0
+        #check substrings similar to shorter
+        for window_size in range(n_short-1, n_short+2):
+            for i in range(len(longer)-window_size+1):
+                window = ' '.join(longer[i:i+window_size])
+                distance = Levenshtein.ldistance(short_sub, window)
+                similarity = 1 - distance / max(len(window), len(short_sub))
                 best = max(best, similarity)
         
         return best
 
-
-    def ldistance(self, a: str, b: str) -> int:
+    @staticmethod
+    def ldistance(a: str, b: str) -> int:
         """Calculates the Levenshtein (edit) distance between two strings with matrices
 
         Args:
@@ -182,22 +120,18 @@ class Levenshtein:
         return matrix[-1, -1]
 
     def search(self, query: str, coarse_size: int = 200, final_size: int = 10):
+        q_words = tokenise(query)
 
         #coarse filter for naive matches
-        matches = np.zeros(len(self.options))
-        for i in range(len(matches)):
-            matches[i] = self.coarse_filter(query, self.options[i])
-
-        top_matches = np.argsort(matches)[::-1][:coarse_size]
-        search_space = self.options[top_matches]
+        coarse = np.array([self.coarse_filter(q_words, tokenised) for tokenised in self.tokens])
+        top_coarse = np.argsort(coarse)[::-1][:coarse_size]
 
         #fine filter for exact matches
-        similarities = np.zeros(len(search_space))
-        for i in range(len(similarities)):
-            similarities[i] = self.sliding_lsim(query, search_space[i])
+        fine = np.array([self.sliding_lsim(q_words, self.tokens[i]) for i in top_coarse])
+        final = 0.75 * fine + 0.25 * coarse[top_coarse]
 
-        top_sims = np.argsort(similarities)[::-1][:final_size]
-        return top_matches[top_sims] #return indices of top matches 
+        order = np.argsort(final)[::-1][:final_size]
+        return top_coarse[order] 
 
 
 

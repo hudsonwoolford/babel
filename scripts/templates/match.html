@@ -22,6 +22,7 @@
     <div id="book-author"class="emphasis"></div>
     <div id="book-genres"></div>
     <div id="book-description" class="italics txt-small"></div>
+    <a id="book-link" href= "" target="_blank">See it on Hardcover</a>
     <br>
 </div>
 
@@ -116,6 +117,8 @@
             }
             document.getElementById("book-description").textContent = adj_desc;
         }
+
+        document.getElementById("book-link").href = `https://hardcover.app/books/${book.slug}`;
     }
 
     function add_card(book) {

@@ -1,0 +1,34 @@
+{% extends 'favoritable.html' %}
+
+{% block content %}
+{% from 'macros.html' import icon, menu_btn%}
+<div class="logo-txt">Taste profile</div>
+<div class="txt-large">Indicate your preferences</div>
+<br>
+{% for book in profilers %}
+<div class="h-book-card">
+    <a href="{{url_for('book_info', id=book.id) }}" class="h-book-card-main">
+        {% if book.image.url %}
+        <img src="{{ book.image.url }}" style="border-radius: 5px;" height="100%" alt="Book cover">
+        {% endif %}
+        <span class="book-card-info">
+            <span style="font-weight:bold;">{{ book.title | truncate(30) }}</span>
+            <span>{{ book.authors[0] | truncate(20)}}</span>
+        </span>
+    </a>
+
+    <button type="button" class="button button-favorite" onclick="toggle_favorite(this, '{{book.id}}')">
+        {% if book in favorites %}
+            {{ icon('Heart', color="red") }}
+        {% else %}
+            {{ icon('Heart') }}
+        {% endif %}
+    </button>
+</div>
+{% endfor %}
+
+{{ menu_btn('index', 'Home', 'Menu', 'Continue to Babel') }}
+{% endblock %}
+
+{%block footer%}
+{% endblock %}

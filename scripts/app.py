@@ -72,11 +72,19 @@ def clear():
         with STORE_LOCK:
             RECOMMEND_STORE.pop(sid, None)
     session.clear()
-    return render_template("index.html")
+    return redirect(url_for("index"))
 
 @app.route("/")
 def index():
+    if not session.get("profiled", False):
+        return redirect(url_for("taste"))
     return render_template("index.html")
+
+@app.route("/taste")
+def taste():
+    profile_books = [ID_2_INDEX[book_id] for book_id in [427578, 381329, 379647, 139773]]
+    session["profiled"] = True
+    return render_template("taste.html", profilers=[BOOKS[ind] for ind in profile_books])
 
 @app.route("/settings")
 def settings():
