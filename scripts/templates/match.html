@@ -130,7 +130,6 @@
 
         //content of the card, including swipe hints/overlays
         cover_url = book.image && book.image.url ? book.image.url : NO_COVER_SVG;
-        cover_url = NO_COVER_SVG;
         card.innerHTML = `
         <img id="book-image" src="${ cover_url }" alt="Book cover" class="cover-image" draggable="false"> 
         <div class="swipe-hint left cover-image">X</div>
