@@ -8,6 +8,7 @@ from flask import Flask, render_template, session, request, redirect, url_for, j
 import threading
 import time
 import uuid
+import argparse
 
 app = Flask(__name__)
 app.secret_key = "babel-session"
@@ -50,17 +51,17 @@ def get_recommender(session_id):
 
         return entry
 
-def init_session():
+def init_session(path: str):
     global BOOKS, ID_2_INDEX, VECTORS, SEARCH
 
-    with open("output/book_data.json") as f:
-        BOOKS = json.load(f)["data"]["books"][:50000]
+    with open(f"{path}/book_data.json") as f:
+        BOOKS = json.load(f)["data"]["books"]
 
-    with open("output/id_mapping.json") as f:
+    with open(f"{path}/id_mapping.json") as f:
         ID_2_INDEX = json.load(f)
         ID_2_INDEX = {int(key):value for key, value in ID_2_INDEX.items()}
     
-    VECTORS = np.load("output/book_vectors_reduced.npy")[:50000]
+    VECTORS = np.load(f"{path}/book_vectors.npy")
     
     SEARCH = Levenshtein([book["title"] for book in BOOKS])
 
@@ -254,6 +255,11 @@ def stars(rating, max=5):
     return f"{rating} {'★' * filled}{'☆' * (max - filled)}"
 
 if __name__ == "__main__":
-    init_session()
-    app.run(port=8080,debug=True)
+    #arg parsing
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--path", help="folder that stores book_data.json, id_mapping.json, and book_vectors.npy", default="data")
+    args = parser.parse_args()
+
+    init_session(args.path)
+    app.run(port=8080)
     session.clear()

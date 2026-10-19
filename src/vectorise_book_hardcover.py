@@ -96,24 +96,22 @@ def generate_tag_vecs(book_list: list, value_extractor, count_extractor):
     
     return res_vectors
 
-def main():
-    #load book data
-    with open("output/book_data.json") as f:
-        book_data = json.load(f)
-    book_list = book_data["data"]["books"]
+def full_vectorisation(book_data: dict) -> np.ndarray:
 
+    #get book list
+    book_list = book_data["data"]["books"]
 
     #genre vectors
     genre_vecs = generate_tag_vecs(book_list, 
                                    lambda b: b["genres"]["names"], 
                                    lambda b: b["genres"]["counts"])
-    genre_vecs = dimension_reduction.change_dimensions(genre_vecs, 25)
+    genre_vecs = dimension_reduction.change_dimensions(genre_vecs, 24)
     
     #mood vectors
-    mood_vecs = generate_tag_vecs(book_list,
-                                  lambda b: b["moods"]["names"],
-                                  lambda b: b["moods"]["counts"])
-    mood_vecs = dimension_reduction.change_dimensions(mood_vecs, 25)
+    # mood_vecs = generate_tag_vecs(book_list,
+    #                               lambda b: b["moods"]["names"],
+    #                               lambda b: b["moods"]["counts"])
+    # mood_vecs = dimension_reduction.change_dimensions(mood_vecs, 25)
     
     #descriptions
 
@@ -124,51 +122,31 @@ def main():
         desc = book.get("description", "")
         rate = book.get("ratings_count", 0)
         if desc == None:
-            desc = ""
+            desc = f"{book.get('title', '')} {' '.join(book.get('authors', []))} {' '.join(book.get('genres', []))}"
 
         ratings.append(rate)
         descriptions.append(desc)
 
     #create description vectors
-    desc_vecs = np.load("output/desc_vectors.npy")
-    # embedding_model.init_model()
-    # desc_vecs = embedding_model.embed_texts(descriptions)
-    # desc_vecs = dimension_reduction.change_dimensions(desc_vecs, 100)
+    # desc_vecs = dimension_reduction.change_dimensions(np.load("output/desc_vectors.npy"), 125)
+    embedding_model.init_model()
+    desc_vecs = embedding_model.embed_texts(descriptions)
+    desc_vecs = dimension_reduction.change_dimensions(desc_vecs, 125)
 
-    #create rating vectors
+    # #create rating vectors
     pop_val = np.log1p(np.asarray(ratings, dtype=np.float32))
     pop_val = pop_val / np.max(pop_val)
     pop_val = pop_val[:, None]
 
-    #concatenate into final vector
-    final_vecs = vector_utils.list_norm_concatenate(genre_vecs, mood_vecs, desc_vecs, pop_val)
+    # #concatenate into final vector
+    final_vecs = np.hstack([vector_utils.list_norm_concatenate(genre_vecs, desc_vecs), pop_val])
     final_vecs = normalize(final_vecs, norm='l2')
-
-    #rating scaling
-    # final_vecs *= np.sqrt(np.asarray(ratings))[:, None]
-
-    #save final
-    np.save("output/book_vectors.npy", final_vecs)
+    #return final
+    return final_vecs
 
 
 if __name__ == "__main__":
-    main()
-
-    # vecs = np.load("./output/book_vectors.npy")
-
-    # while True:
-    #     index = int(input("Index: "))
-
-    #     # print(vecs[index])
-    #     closest = arg_n_closest(vecs[index], vecs, 10)
-    #     print(vecs[closest[0]])
-    #     # print(closest)
-
-    #     for c in closest:
-    #         print(book_list[c]["title"])
-    #         print(book_list[c]["genres"]["values"])
-    #         print(book_list[c]["moods"]["values"])
-
+    pass
     
             
         

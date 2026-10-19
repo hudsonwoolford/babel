@@ -47,31 +47,19 @@ class Weighted_Rocchio(Rocchio):
         pass
 
 class LinUCB():
-    def __init__(self, book_vectors: np.ndarray, alpha: float = 1):
+    def __init__(self, book_vectors: np.ndarray, alpha: float = 1) -> None:
         _, n_features = book_vectors.shape
 
+        #initialise context matrix and preference vector
         self.A_inv = np.eye(n_features, dtype=np.float32)
         self.b = np.zeros(n_features, dtype=np.float32)
 
+        #store book vectors at float32 for memory and speed
         self.book_vectors = np.array(book_vectors, dtype=np.float32)
 
         self.alpha = alpha
-    
-
-    def score(self, book_index: int) -> float:
-        book_x = self.book_vectors[book_index]
-
-        theta = self.A_inv @ self.b
-
-        expected = np.dot(theta, book_x)
-        uncertainty = np.sqrt(np.transpose(book_x) @ self.A_inv @ book_x)
-        result = expected + uncertainty
-
-        # print(f"{book_index} | Expected: {expected:.2f} | Uncertainty: {uncertainty:.2f} | Total: {result:.2f}")
-
-        return result
         
-    def recommend(self, seen_indices: set):
+    def recommend(self, seen_indices: set) -> int:
         theta = self.A_inv @ self.b
 
         #mat mul for scores
@@ -91,8 +79,10 @@ class LinUCB():
     def update(self, book_index: int, liked: bool) -> None:
         book_x = self.book_vectors[book_index]
 
-        #update matrices
+        #sherman-morrison update context
         self.A_inv -= (self.A_inv @ np.outer(book_x, book_x) @ self.A_inv) / (1 + book_x @ self.A_inv @ book_x)
+
+        #add reward feedback
         self.b += int(liked) * book_x
 
     def mass_update(self, book_indices):

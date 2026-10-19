@@ -2,8 +2,11 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+import argparse
+import vectorise_book_hardcover
+import numpy as np
 
-load_dotenv("api_keys.env")
+load_dotenv(".env")
 URL = "https://api.hardcover.app/v1/graphql"
 HEADERS = headers = {
     "Content-Type" : "application/json",
@@ -189,12 +192,11 @@ def format_book_data(book_data: dict) -> dict:
     
     return book_data
 
-def main():
+def get_book_data(num_books: int = 5000):
     print("Retrieving ids...")
-    # trending_ids = get_trending_ids("2025-01-01", "2025-04-01", limit=500, offset=0)
-    with open("input/trending_ids.txt") as f:
-        trending_ids = [int(l.rstrip()) for l in f]
-    trending_ids = trending_ids[:30000]
+    trending_ids = get_trending_ids("2025-01-01", "2025-04-01", num_books, offset=0)
+    trending_ids = trending_ids[:num_books]
+    # print(trending_ids)
     
     print("Retrieving books...")
     book_data = get_books_by_id(trending_ids)
@@ -206,13 +208,24 @@ def main():
     books = book_data["data"]["books"]
     for i in range(len(books)):
         id_2_index[books[i]["id"]] = i
-    
-    with open("output/id_mapping.json", "w", encoding="utf-8") as f:
-        json.dump(id_2_index, f, indent=1)
 
-    with open("output/book_data.json", "w", encoding="utf-8") as f:
-        json.dump(book_data, f, indent=1)
+
+    return book_data, id_2_index
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--folder-path", help="folder to output book_data.json, id_mapping.json, and book_vectors.npy to", default="data")
+    parser.add_argument("--num-books", help="Number of books to retrieve from Hardcover, automatically sorts by trending", default=5000)
+    args = parser.parse_args()
+    book_data, id_2_index = get_book_data(args.num_books)
+    print("Vectorising books...")
+    book_vectors = vectorise_book_hardcover.full_vectorisation(book_data)
+
+    print("Saving data to", args.folder_path + "...")
+    with open(f"{args.folder_path}/book_data.json", "w", encoding="utf-8") as f:
+        json.dump(book_data, f, indent=1)
+    with open(f"{args.folder_path}/id_mapping.json", "w", encoding="utf-8") as f:
+        json.dump(id_2_index, f, indent=1)
+    np.save(f"{args.folder_path}/book_vectors.npy", book_vectors)
+
 
