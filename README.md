@@ -13,10 +13,12 @@ I originally created Babel for my English teacher, who was struggling to recomme
 This project was developed on a Windows 11 computer.
 A full list of python libraries can be found in requirements.txt, but an overview of the main libraries is also given below.
 
+| Library | Purpose |
+| --- | --- |
 | numpy | Math operations, including matrix and vector functionality |
-| flask | Webpages and python integration |
+| Flask | Webpages and Python integration |
 | scikit-learn | Principal component analysis and normalisation functions |
-| sentence transformers | Sentence embedding model for book vectors |
+| sentence-transformers | Sentence embedding model for book vectors |
 
 ### Installation
 
