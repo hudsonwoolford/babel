@@ -11,7 +11,12 @@ I originally created Babel for my English teacher, who was struggling to recomme
 ### Dependencies
 
 This project was developed on a Windows 11 computer.
-A full list of python libraries can be found in requirements.txt, but an overview is also given below.
+A full list of python libraries can be found in requirements.txt, but an overview of the main libraries is also given below.
+
+| numpy | Math operations, including matrix and vector functionality |
+| flask | Webpages and python integration |
+| scikit-learn | Principal component analysis and normalisation functions |
+| sentence transformers | Sentence embedding model for book vectors |
 
 ### Installing
 
@@ -45,6 +50,7 @@ src                  # master folder of the app's functionality
 ## Acknowledgments
 
 [Hardcover API](https://docs.hardcover.app/)
+[Sentence Transformers Model](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 [LinUCB](https://arxiv.org/pdf/1003.0146)
 [Flask](https://flask.palletsprojects.com/en/stable/)
 [Raspberry Pi](https://www.raspberrypi.com/)
