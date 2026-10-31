@@ -24,7 +24,7 @@ A full list of python libraries can be found in requirements.txt, but an overvie
 
 Clone the repository. Create a virtual environment. Install the packages from requirements.txt.
 
-Note that by default this repository only includes a sample of books (5000 titles). To configure the program with a larger catalogue, create a .env file and add a Hardcover API key to a HARDCOVER_AUTHORIZATION variable. Then run src/hardcover_api.py.
+Note that by default this repository only includes a sample of books (1000 titles). To configure the program with a larger catalogue, create a .env file and add a Hardcover API key to a HARDCOVER_AUTHORIZATION variable. Then run src/hardcover_api.py.
 ```
 python src/hardcover_api.py --folder-path [FOLDER_PATH] --num-books [NUMBER OF BOOKS]
 ```

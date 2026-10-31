@@ -47,7 +47,7 @@ class Weighted_Rocchio(Rocchio):
         pass
 
 class LinUCB():
-    def __init__(self, book_vectors: np.ndarray, alpha: float = 1) -> None:
+    def __init__(self, book_vectors: np.ndarray, alpha: float = 3.5) -> None:
         _, n_features = book_vectors.shape
 
         #initialise context matrix and preference vector
@@ -83,7 +83,8 @@ class LinUCB():
         self.A_inv -= (self.A_inv @ np.outer(book_x, book_x) @ self.A_inv) / (1 + book_x @ self.A_inv @ book_x)
 
         #add reward feedback
-        self.b += int(liked) * book_x
+        reward = 1 if liked else -0.2
+        self.b += reward * book_x
 
     def mass_update(self, book_indices):
         for index in book_indices:

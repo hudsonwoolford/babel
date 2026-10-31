@@ -139,14 +139,14 @@ def full_vectorisation(book_data: dict) -> np.ndarray:
     pop_val = pop_val[:, None]
 
     # #concatenate into final vector
-    final_vecs = np.hstack([vector_utils.list_norm_concatenate(genre_vecs, desc_vecs), pop_val])
+    final_vecs = np.hstack([vector_utils.list_norm_concatenate(genre_vecs, desc_vecs), pop_val * 0.3])
     final_vecs = normalize(final_vecs, norm='l2')
     #return final
     return final_vecs
 
 
 if __name__ == "__main__":
-    pass
+    np.save("data/book_vectors.npy", full_vectorisation(json.load(open("data/book_data.json", 'r'))))
     
             
         

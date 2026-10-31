@@ -82,13 +82,22 @@ def get_trending_ids(from_date: str, to_date: str, limit: int = 10, offset: int 
 
         response = limited_query(local_limit, offset + 100 * iter) 
 
-        #in case there is no more trending books
-        try:
-            data = response["data"]
-        except:
+        if "errors" in response:
+            print("GraphQL errors:", response["errors"])
+            break
+
+        result = response["data"]["books_trending"]
+        if result.get("error"):
+            print("books_trending error:", result["error"])
+            break
+
+        ids = [str(i) for i in result["ids"]]
+        if not ids:
+            print(f"No more results at offset {offset + 100 * iter}")
             break
         
-        trending_ids += list(map(str, data["books_trending"]["ids"]))
+        trending_ids += ids
+        print(len(trending_ids))
 
         iter += 1
         remaining -= 100
@@ -217,7 +226,8 @@ if __name__ == "__main__":
     parser.add_argument("--folder-path", help="folder to output book_data.json, id_mapping.json, and book_vectors.npy to", default="data")
     parser.add_argument("--num-books", help="Number of books to retrieve from Hardcover, automatically sorts by trending", default=5000)
     args = parser.parse_args()
-    book_data, id_2_index = get_book_data(args.num_books)
+
+    book_data, id_2_index = get_book_data(int(args.num_books))
     print("Vectorising books...")
     book_vectors = vectorise_book_hardcover.full_vectorisation(book_data)
 
